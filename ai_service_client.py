@@ -9,6 +9,27 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
 
+
+def upload_file(stub, file_path):
+    def file_chunks():
+        with open(file_path, 'rb') as f:
+            while True:
+                chunk = f.read(1024)  # Read in 1KB chunks
+                if not chunk:
+                    break
+                print(f"Sending chunk of size: {len(chunk)}")
+                #return iter([].append(ai_service_pb2.AudioChunk(chunk_data=chunk)))
+                yield ai_service_pb2.AudioChunk(chunk_data=chunk)
+                
+    try:
+        response_iterator = stub.StreamAudio(file_chunks())
+        for response in response_iterator:
+            print(f"Received transcription: {response.transcription}")
+    except grpc.RpcError as e:
+        print(f"gRPC error: {e.code()} - {e.details()}")
+        
+
+
 def record_and_stream():
     audio = pyaudio.PyAudio()
     stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE,
@@ -41,25 +62,30 @@ def record_and_stream():
 def run(audio_file_path):
     # Create a channel and stub for gRPC communication
     channel = grpc.insecure_channel('localhost:50051')
-    stub = ai_service_pb2_grpc.AIServiceStub(channel)    
+    stub = ai_service_pb2_grpc.AIServiceStub(channel)   
+    
+    upload_file(stub, 'audio_test/Passenger  Let Her Go (Official Video).mp3')
+    
+    
+     
     # Helper function to read the audio file
-    def read_audio_file(file_path):
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Audio file {file_path} not found.")
-        with open(file_path, 'rb') as f:
-            return f.read()
+    # def read_audio_file(file_path):
+    #     if not os.path.exists(file_path):
+    #         raise FileNotFoundError(f"Audio file {file_path} not found.")
+    #     with open(file_path, 'rb') as f:
+    #         return f.read()
 
-    try:
-        # Send the audio file to the server
-        audio_data = read_audio_file(audio_file_path)
-        print("Sending UploadAudio request...")
-        response = stub.UploadAudio(ai_service_pb2.AudioFile(file_data=audio_data))
-        print("Upload Audio Response:", response.transcription)
-    except FileNotFoundError as e:
-        print(f"Error: {e}")
-    except grpc.RpcError as e:
-        print(f"Upload Audio RPC error: {e.code()} - {e.details()}")
+    # try:
+    #     # Send the audio file to the server
+    #     audio_data = read_audio_file(audio_file_path)
+    #     print("Sending UploadAudio request...")
+    #     response = stub.UploadAudio(ai_service_pb2.AudioFile(file_data=audio_data))
+    #     print("Upload Audio Response:", response.transcription)
+    # except FileNotFoundError as e:
+    #     print(f"Error: {e}")
+    # except grpc.RpcError as e:
+    #     print(f"Upload Audio RPC error: {e.code()} - {e.details()}")
 
 if __name__ == '__main__':
-    run(audio_file_path='audio.mp3')
-    # record_and_stream()
+    run(audio_file_path='audio_test/audio.mp3')
+    #record_and_stream()

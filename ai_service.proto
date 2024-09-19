@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package ai_service;
+
+service AIService {
+    // Yêu cầu gửi file âm thanh
+    rpc UploadAudio (AudioFile) returns (TranscriptionResponse);
+
+    // Nhận diện giọng nói theo thời gian thực
+    rpc StreamAudio (stream AudioChunk) returns (stream TranscriptionResponse);
+}
+
+message AudioFile {
+    bytes file_data = 1;
+}
+
+message AudioChunk {
+    bytes chunk_data = 1;
+}
+
+message TranscriptionResponse {
+    string transcription = 1;
+}
+

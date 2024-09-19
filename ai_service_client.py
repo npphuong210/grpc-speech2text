@@ -59,33 +59,35 @@ def record_and_stream():
         except grpc.RpcError as e:
             print(f"StreamAudio RPC error: {e.code()} - {e.details()}")
 
-def run(audio_file_path):
+def run_streaming(audio_file_path):
     # Create a channel and stub for gRPC communication
     channel = grpc.insecure_channel('localhost:50051')
     stub = ai_service_pb2_grpc.AIServiceStub(channel)   
     
-    upload_file(stub, audio_file_path)
+    # upload_file(stub, audio_file_path)
     
-    
-     
-    # Helper function to read the audio file
-    # def read_audio_file(file_path):
-    #     if not os.path.exists(file_path):
-    #         raise FileNotFoundError(f"Audio file {file_path} not found.")
-    #     with open(file_path, 'rb') as f:
-    #         return f.read()
+def run_audio(audio_file_path):    
+    channel = grpc.insecure_channel('localhost:50051')
+    stub = ai_service_pb2_grpc.AIServiceStub(channel)  
 
-    # try:
-    #     # Send the audio file to the server
-    #     audio_data = read_audio_file(audio_file_path)
-    #     print("Sending UploadAudio request...")
-    #     response = stub.UploadAudio(ai_service_pb2.AudioFile(file_data=audio_data))
-    #     print("Upload Audio Response:", response.transcription)
-    # except FileNotFoundError as e:
-    #     print(f"Error: {e}")
-    # except grpc.RpcError as e:
-    #     print(f"Upload Audio RPC error: {e.code()} - {e.details()}")
+    # Helper function to read the audio file
+    def read_audio_file(file_path):
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Audio file {file_path} not found.")
+        with open(file_path, 'rb') as f:
+            return f.read()
+
+    try:
+        # Send the audio file to the server
+        audio_data = read_audio_file(audio_file_path)
+        print("Sending UploadAudio request...")
+        response = stub.UploadAudio(ai_service_pb2.AudioFile(file_data=audio_data))
+        print("Upload Audio Response:", response.transcription)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+    except grpc.RpcError as e:
+        print(f"Upload Audio RPC error: {e.code()} - {e.details()}")
 
 if __name__ == '__main__':
-    run(audio_file_path='audio_test/audio.mp3')
-    #record_and_stream()
+    # run_streaming(audio_file_path='audio_test/audio.mp3')
+    run_audio(audio_file_path='audio_test/revolution-road-220375.mp3')

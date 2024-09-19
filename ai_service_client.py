@@ -64,7 +64,7 @@ def run(audio_file_path):
     channel = grpc.insecure_channel('localhost:50051')
     stub = ai_service_pb2_grpc.AIServiceStub(channel)   
     
-    upload_file(stub, 'audio_test/Passenger  Let Her Go (Official Video).mp3')
+    upload_file(stub, audio_file_path)
     
     
      
